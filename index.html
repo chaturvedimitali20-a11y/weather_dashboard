@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weather Dashboard | SkillMe Week 1</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="dashboard">
+    <header class="dashboard-header">
+      <h1>Weather Dashboard</h1>
+      <form class="search-form" id="search-form">
+        <label for="city-input" class="visually-hidden">Search city</label>
+        <input
+          type="text"
+          id="city-input"
+          class="search-input"
+          placeholder="Enter city name (e.g., Greater Noida)..."
+          aria-label="Search city"
+        />
+        <button type="submit" class="search-btn">Search</button>
+      </form>
+    </header>
+
+    <!-- Current Weather Card -->
+    <section class="current-weather" aria-label="Current weather">
+      <div class="current-main">
+        <div>
+          <h2 class="current-city">Greater Noida, IN</h2>
+          <p class="current-condition">Clear &amp; Sunny</p>
+        </div>
+        <div class="current-icon" role="img" aria-label="Sunny">☀️</div>
+      </div>
+
+      <div class="current-stats">
+        <p class="current-temp">24°C</p>
+        <div class="current-details">
+          <span>💧 Humidity: <strong>45%</strong></span>
+          <span>💨 Wind: <strong>12 km/h</strong></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7-Day Forecast Row -->
+    <section class="forecast-section" aria-label="7-day forecast">
+      <h2 class="section-title">7-Day Forecast</h2>
+      <div class="forecast-row">
+        <article class="forecast-card">
+          <h3 class="forecast-day">Thu</h3>
+          <div class="forecast-icon">☀️</div>
+          <p class="forecast-temps"><span class="max-temp">25°</span> / <span class="min-temp">13°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Fri</h3>
+          <div class="forecast-icon">⛅</div>
+          <p class="forecast-temps"><span class="max-temp">24°</span> / <span class="min-temp">12°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Sat</h3>
+          <div class="forecast-icon">☀️</div>
+          <p class="forecast-temps"><span class="max-temp">26°</span> / <span class="min-temp">14°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Sun</h3>
+          <div class="forecast-icon">🌤️</div>
+          <p class="forecast-temps"><span class="max-temp">25°</span> / <span class="min-temp">13°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Mon</h3>
+          <div class="forecast-icon">☁️</div>
+          <p class="forecast-temps"><span class="max-temp">22°</span> / <span class="min-temp">12°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Tue</h3>
+          <div class="forecast-icon">🌧️</div>
+          <p class="forecast-temps"><span class="max-temp">20°</span> / <span class="min-temp">11°</span></p>
+        </article>
+
+        <article class="forecast-card">
+          <h3 class="forecast-day">Wed</h3>
+          <div class="forecast-icon">☀️</div>
+          <p class="forecast-temps"><span class="max-temp">23°</span> / <span class="min-temp">12°</span></p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

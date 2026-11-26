@@ -3,91 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather Dashboard | SkillMe Week 1</title>
+  <title>Weather Dashboard | SkillMe Week 2</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <main class="dashboard">
     <header class="dashboard-header">
       <h1>Weather Dashboard</h1>
-      <form class="search-form" id="search-form">
-        <label for="city-input" class="visually-hidden">Search city</label>
-        <input
-          type="text"
-          id="city-input"
-          class="search-input"
-          placeholder="Enter city name (e.g., Greater Noida)..."
-          aria-label="Search city"
-        />
-        <button type="submit" class="search-btn">Search</button>
-      </form>
+      <div class="header-controls">
+        <form class="search-form" id="search-form" novalidate>
+          <label for="city-input" class="visually-hidden">Search city</label>
+          <input
+            type="text"
+            id="city-input"
+            class="search-input"
+            placeholder="Enter city name (e.g., Delhi)..."
+            aria-label="Search city"
+          />
+          <button type="submit" class="search-btn">Search</button>
+        </form>
+        <button type="button" id="unit-toggle" class="unit-btn" aria-label="Toggle temperature unit">
+          °C / °F
+        </button>
+      </div>
     </header>
 
-    <!-- Current Weather Card -->
+    <!-- Validation Feedback Message -->
+    <p id="search-message" class="search-message" role="alert" aria-live="polite"></p>
+
+    <!-- Current Weather Card (Populated by JS) -->
     <section class="current-weather" aria-label="Current weather">
       <div class="current-main">
         <div>
-          <h2 class="current-city">Greater Noida, IN</h2>
-          <p class="current-condition">Clear &amp; Sunny</p>
+          <h2 class="current-city" id="current-city">Loading...</h2>
+          <p class="current-condition" id="current-condition">--</p>
         </div>
-        <div class="current-icon" role="img" aria-label="Sunny">☀️</div>
+        <div class="current-icon" id="current-icon" role="img" aria-label="Weather icon">☀️</div>
       </div>
 
       <div class="current-stats">
-        <p class="current-temp">24°C</p>
+        <p class="current-temp" id="current-temp">--°C</p>
         <div class="current-details">
-          <span>💧 Humidity: <strong>45%</strong></span>
-          <span>💨 Wind: <strong>12 km/h</strong></span>
+          <span>💧 Humidity: <strong id="current-humidity">--%</strong></span>
+          <span>💨 Wind: <strong id="current-wind">-- km/h</strong></span>
         </div>
       </div>
     </section>
 
-    <!-- 7-Day Forecast Row -->
+    <!-- 7-Day Forecast Row (Populated Dynamically by JS) -->
     <section class="forecast-section" aria-label="7-day forecast">
       <h2 class="section-title">7-Day Forecast</h2>
-      <div class="forecast-row">
-        <article class="forecast-card">
-          <h3 class="forecast-day">Thu</h3>
-          <div class="forecast-icon">☀️</div>
-          <p class="forecast-temps"><span class="max-temp">25°</span> / <span class="min-temp">13°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Fri</h3>
-          <div class="forecast-icon">⛅</div>
-          <p class="forecast-temps"><span class="max-temp">24°</span> / <span class="min-temp">12°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Sat</h3>
-          <div class="forecast-icon">☀️</div>
-          <p class="forecast-temps"><span class="max-temp">26°</span> / <span class="min-temp">14°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Sun</h3>
-          <div class="forecast-icon">🌤️</div>
-          <p class="forecast-temps"><span class="max-temp">25°</span> / <span class="min-temp">13°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Mon</h3>
-          <div class="forecast-icon">☁️</div>
-          <p class="forecast-temps"><span class="max-temp">22°</span> / <span class="min-temp">12°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Tue</h3>
-          <div class="forecast-icon">🌧️</div>
-          <p class="forecast-temps"><span class="max-temp">20°</span> / <span class="min-temp">11°</span></p>
-        </article>
-
-        <article class="forecast-card">
-          <h3 class="forecast-day">Wed</h3>
-          <div class="forecast-icon">☀️</div>
-          <p class="forecast-temps"><span class="max-temp">23°</span> / <span class="min-temp">12°</span></p>
-        </article>
-      </div>
+      <div class="forecast-row" id="forecast-row"></div>
     </section>
   </main>
 

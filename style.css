@@ -7,8 +7,23 @@
   --text-main: #1e293b;
   --text-muted: #64748b;
   --border-color: #cbd5e1;
+  --error-bg: #fee2e2;
+  --error-text: #b91c1c;
   --radius: 16px;
   --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+
+/* Stretch Goal: Condition-based background themes */
+body.theme-sunny {
+  --bg-page: #fef9c3;
+}
+
+body.theme-cloudy {
+  --bg-page: #e2e8f0;
+}
+
+body.theme-rain {
+  --bg-page: #dbeafe;
 }
 
 * {
@@ -25,6 +40,7 @@ body {
   padding: 2rem 1rem;
   display: flex;
   justify-content: center;
+  transition: background-color 0.35s ease;
 }
 
 .dashboard {
@@ -32,10 +48,10 @@ body {
   max-width: 900px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.25rem;
 }
 
-/* Header & Search Form */
+/* Header, Search Form & Unit Toggle */
 .dashboard-header {
   display: flex;
   flex-wrap: wrap;
@@ -49,11 +65,18 @@ body {
   font-weight: 700;
 }
 
+.header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  flex: 1;
+  max-width: 500px;
+}
+
 .search-form {
   display: flex;
   gap: 0.5rem;
   flex: 1;
-  max-width: 420px;
 }
 
 .visually-hidden {
@@ -79,20 +102,55 @@ body {
   border-color: transparent;
 }
 
+.search-btn,
+.unit-btn {
+  padding: 0.65rem 1.15rem;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
 .search-btn {
-  padding: 0.65rem 1.25rem;
   background-color: var(--primary);
   color: #ffffff;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
 .search-btn:hover {
   background-color: var(--primary-hover);
+}
+
+.unit-btn {
+  background-color: var(--bg-card);
+  color: var(--primary);
+  border: 1.5px solid var(--primary);
+}
+
+.unit-btn:hover {
+  background-color: var(--bg-accent);
+}
+
+/* Search Feedback Message */
+.search-message {
+  display: none;
+  padding: 0.65rem 1rem;
+  border-radius: 10px;
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.search-message.error {
+  display: block;
+  background-color: var(--error-bg);
+  color: var(--error-text);
+}
+
+.search-message.info {
+  display: block;
+  background-color: var(--bg-accent);
+  color: var(--primary-hover);
 }
 
 /* Current Weather Card */

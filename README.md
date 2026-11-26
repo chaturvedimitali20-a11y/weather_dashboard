@@ -4,7 +4,6 @@ A responsive weather dashboard UI built with semantic HTML5, modern CSS3 (Flexbo
 
 🌐 **Live Demo:** [https://chaturvedimitali20-a11y.github.io/weather_dashboard/](https://chaturvedimitali20-a11y.github.io/weather_dashboard/)
 
-🌐 **Live Demo:** [https://chaturvedimitali20-a11y.github.io/weather_dashboard/](https://chaturvedimitali20-a11y.github.io/weather_dashboard/)
 
 ## Features
 

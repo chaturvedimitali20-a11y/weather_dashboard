@@ -26,19 +26,19 @@ function getWeatherInfo(code) {
   if (code === 0) {
     return { emoji: "☀️", label: "Clear Sky", theme: "sunny" };
   }
-  if ([1, 2].includes(code)) {
+  if (code === 1 || code === 2) {
     return { emoji: "⛅", label: "Partly Cloudy", theme: "sunny" };
   }
   if (code === 3) {
     return { emoji: "☁️", label: "Overcast", theme: "cloudy" };
   }
-  if ([45, 48].includes(code)) {
+  if (code === 45 || code === 48) {
     return { emoji: "🌫️", label: "Foggy", theme: "cloudy" };
   }
   if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
     return { emoji: "🌧️", label: "Rain / Showers", theme: "rain" };
   }
-  if ((code >= 71 && code <= 77) || [85, 86].includes(code)) {
+  if ((code >= 71 && code <= 77) || code === 85 || code === 86) {
     return { emoji: "❄️", label: "Snow", theme: "cloudy" };
   }
   if (code >= 95 && code <= 99) {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather Dashboard | SkillMe Week 2</title>
+  <title>Weather Dashboard | SkillMe Week 3</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -17,21 +17,24 @@
             type="text"
             id="city-input"
             class="search-input"
-            placeholder="Enter city name (e.g., Delhi)..."
+            placeholder="Enter any city (e.g., Pune, London)..."
             aria-label="Search city"
           />
-          <button type="submit" class="search-btn">Search</button>
+          <button type="submit" id="search-btn" class="search-btn">Search</button>
         </form>
+        <button type="button" id="geo-btn" class="geo-btn" aria-label="Use my current location">
+          📍 My Location
+        </button>
         <button type="button" id="unit-toggle" class="unit-btn" aria-label="Toggle temperature unit">
-          °C / °F
+          Switch to °F
         </button>
       </div>
     </header>
 
-    <!-- Validation Feedback Message -->
+    <!-- Status / Loading / Error Feedback Banner -->
     <p id="search-message" class="search-message" role="alert" aria-live="polite"></p>
 
-    <!-- Current Weather Card (Populated by JS) -->
+    <!-- Current Weather Card -->
     <section class="current-weather" aria-label="Current weather">
       <div class="current-main">
         <div>
@@ -50,7 +53,7 @@
       </div>
     </section>
 
-    <!-- 7-Day Forecast Row (Populated Dynamically by JS) -->
+    <!-- 7-Day Forecast Row -->
     <section class="forecast-section" aria-label="7-day forecast">
       <h2 class="section-title">7-Day Forecast</h2>
       <div class="forecast-row" id="forecast-row"></div>

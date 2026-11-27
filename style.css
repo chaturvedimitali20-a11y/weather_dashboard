@@ -13,7 +13,7 @@
   --shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
 }
 
-/* Stretch Goal: Condition-based background themes */
+/* Condition-based background themes */
 body.theme-sunny {
   --bg-page: #fef9c3;
 }
@@ -45,13 +45,13 @@ body {
 
 .dashboard {
   width: 100%;
-  max-width: 900px;
+  max-width: 920px;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
 }
 
-/* Header, Search Form & Unit Toggle */
+/* Header & Controls */
 .dashboard-header {
   display: flex;
   flex-wrap: wrap;
@@ -70,13 +70,14 @@ body {
   flex-wrap: wrap;
   gap: 0.5rem;
   flex: 1;
-  max-width: 500px;
+  max-width: 620px;
 }
 
 .search-form {
   display: flex;
   gap: 0.5rem;
   flex: 1;
+  min-width: 240px;
 }
 
 .visually-hidden {
@@ -103,13 +104,15 @@ body {
 }
 
 .search-btn,
-.unit-btn {
-  padding: 0.65rem 1.15rem;
+.unit-btn,
+.geo-btn {
+  padding: 0.65rem 1rem;
   border-radius: 10px;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
+  white-space: nowrap;
 }
 
 .search-btn {
@@ -118,26 +121,33 @@ body {
   border: none;
 }
 
-.search-btn:hover {
+.search-btn:hover:not(:disabled) {
   background-color: var(--primary-hover);
 }
 
-.unit-btn {
+.unit-btn,
+.geo-btn {
   background-color: var(--bg-card);
   color: var(--primary);
   border: 1.5px solid var(--primary);
 }
 
-.unit-btn:hover {
+.unit-btn:hover:not(:disabled),
+.geo-btn:hover:not(:disabled) {
   background-color: var(--bg-accent);
 }
 
-/* Search Feedback Message */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Status / Loading / Error Banner */
 .search-message {
   display: none;
-  padding: 0.65rem 1rem;
+  padding: 0.7rem 1rem;
   border-radius: 10px;
-  font-size: 0.92rem;
+  font-size: 0.95rem;
   font-weight: 500;
 }
 
@@ -147,7 +157,8 @@ body {
   color: var(--error-text);
 }
 
-.search-message.info {
+.search-message.info,
+.search-message.loading {
   display: block;
   background-color: var(--bg-accent);
   color: var(--primary-hover);

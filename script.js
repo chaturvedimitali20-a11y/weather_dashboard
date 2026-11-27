@@ -1,326 +1,231 @@
-// Week 3: Live Weather Integration (Open-Meteo API + WeatherAPI Live Fallback)
-
-const WEATHER_API_KEY = "c7ed1dff1f8645cfa1260659262711";
-
-let weatherData = null;
-let currentUnit = "C";
-
-// DOM Elements
 const searchForm = document.getElementById("search-form");
 const cityInput = document.getElementById("city-input");
-const searchBtn = document.getElementById("search-btn");
-const geoBtn = document.getElementById("geo-btn");
-const unitToggleBtn = document.getElementById("unit-toggle");
-const searchMessage = document.getElementById("search-message");
+const searchButton = document.getElementById("search-button");
+const statusMessage = document.getElementById("status-message");
 
-function toFahrenheit(celsius) {
-  return Math.round((celsius * 9) / 5 + 32);
+const cityNameElement = document.getElementById("city-name");
+const currentDescription = document.getElementById("current-description");
+const currentIcon = document.getElementById("current-icon");
+const currentTemperature = document.getElementById("current-temperature");
+const feelsLike = document.getElementById("feels-like");
+const humidityElement = document.getElementById("humidity");
+const windSpeedElement = document.getElementById("wind-speed");
+const forecastList = document.getElementById("forecast-list");
+
+const celsiusButton = document.getElementById("celsius-button");
+const fahrenheitButton = document.getElementById("fahrenheit-button");
+
+let weatherData = null;
+let temperatureUnit = "C";
+
+// Open-Meteo weather codes converted into a short description and emoji.
+function getWeatherInfo(code) {
+  if (code === 0) return { description: "Clear sky", emoji: "☀️" };
+  if (code === 1) return { description: "Mainly clear", emoji: "🌤️" };
+  if (code === 2) return { description: "Partly cloudy", emoji: "⛅" };
+  if (code === 3) return { description: "Overcast", emoji: "☁️" };
+  if ([45, 48].includes(code)) return { description: "Fog", emoji: "🌫️" };
+  if ([51, 53, 55].includes(code)) return { description: "Drizzle", emoji: "🌦️" };
+  if ([56, 57].includes(code)) return { description: "Freezing drizzle", emoji: "🌧️" };
+  if ([61, 63, 65].includes(code)) return { description: "Rain", emoji: "🌧️" };
+  if ([66, 67].includes(code)) return { description: "Freezing rain", emoji: "🌧️" };
+  if ([71, 73, 75, 77].includes(code)) return { description: "Snow", emoji: "❄️" };
+  if ([80, 81, 82].includes(code)) return { description: "Rain showers", emoji: "🌦️" };
+  if ([85, 86].includes(code)) return { description: "Snow showers", emoji: "🌨️" };
+  if ([95, 96, 99].includes(code)) return { description: "Thunderstorm", emoji: "⛈️" };
+  return { description: "Weather unavailable", emoji: "🌡️" };
 }
 
-function formatTemp(tempC) {
-  return currentUnit === "C" ? `${Math.round(tempC)}°C` : `${toFahrenheit(tempC)}°F`;
+// Convert Celsius to Fahrenheit when the user changes the unit.
+function convertTemperature(celsius) {
+  if (temperatureUnit === "F") {
+    return Math.round((celsius * 9 / 5) + 32);
+  }
+
+  return Math.round(celsius);
 }
 
-// Map both Open-Meteo WMO codes and WeatherAPI condition codes to emoji, label & theme
-function getWeatherInfo(code, customText = "") {
-  const num = Number(code);
-  const textLower = customText.toLowerCase();
-
-  // Clear / Sunny
-  if (num === 0 || num === 1000 || textLower.includes("sunny") || textLower.includes("clear")) {
-    return { emoji: "☀️", label: customText || "Clear Sky", theme: "sunny" };
-  }
-  // Partly Cloudy
-  if (num === 1 || num === 2 || num === 1003 || textLower.includes("partly cloudy")) {
-    return { emoji: "⛅", label: customText || "Partly Cloudy", theme: "sunny" };
-  }
-  // Overcast / Cloudy
-  if (num === 3 || num === 1006 || num === 1009 || textLower.includes("cloudy") || textLower.includes("overcast")) {
-    return { emoji: "☁️", label: customText || "Overcast", theme: "cloudy" };
-  }
-  // Fog / Mist
-  if (num === 45 || num === 48 || num === 1030 || num === 1135 || num === 1147 || textLower.includes("fog") || textLower.includes("mist")) {
-    return { emoji: "🌫️", label: customText || "Foggy", theme: "cloudy" };
-  }
-  // Thunderstorm
-  if ((num >= 95 && num <= 99) || num === 1087 || num >= 1273 || textLower.includes("thunder")) {
-    return { emoji: "⛈️", label: customText || "Thunderstorm", theme: "rain" };
-  }
-  // Snow
-  if ((num >= 71 && num <= 77) || num === 85 || num === 86 || (num >= 1210 && num <= 1225) || textLower.includes("snow")) {
-    return { emoji: "❄️", label: customText || "Snow", theme: "cloudy" };
-  }
-  // Rain / Drizzle / Showers
-  if ((num >= 51 && num <= 67) || (num >= 80 && num <= 82) || (num >= 1063 && num <= 1201) || textLower.includes("rain") || textLower.includes("drizzle")) {
-    return { emoji: "🌧️", label: customText || "Rain / Showers", theme: "rain" };
-  }
-
-  return { emoji: "🌤️", label: customText || "Mild Weather", theme: "sunny" };
-}
-
-function applyConditionTheme(theme) {
-  document.body.classList.remove("theme-sunny", "theme-cloudy", "theme-rain");
-  if (theme) document.body.classList.add(`theme-${theme}`);
-}
-
-function showMessage(text, type = "info") {
-  searchMessage.textContent = text;
-  searchMessage.className = `search-message ${type}`;
-}
-
-function clearMessage() {
-  searchMessage.textContent = "";
-  searchMessage.className = "search-message";
-}
-
-function setLoadingState(isLoading, label = "Loading weather data...") {
-  searchBtn.disabled = isLoading;
-  geoBtn.disabled = isLoading;
-  if (isLoading) showMessage(label, "loading");
-}
-
-// Primary API (SkillMe Rubric): Open-Meteo Geocoding + Forecast
+// First API call: convert the city name into latitude and longitude.
 async function getCoordinates(city) {
-  const url = `https://open-meteo.com{encodeURIComponent(city)}&count=1&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(city)}&count=1&language=en&format=json`;
+
   const response = await fetch(url);
-  if (!response.ok) throw new Error("Open-Meteo geocoding error");
-  const data = await response.json();
-  if (!data.results || data.results.length === 0) return { notFound: true };
-
-  const place = data.results.at(0);
-  return {
-    notFound: false,
-    name: place.country ? `${place.name}, ${place.country}` : place.name,
-    latitude: place.latitude,
-    longitude: place.longitude,
-  };
-}
-
-async function getWeather(lat, lon) {
-  const url = `https://open-meteo.com{lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error("Open-Meteo forecast error");
-  return await response.json();
-}
-
-function mapOpenMeteoToData(cityLabel, apiJson) {
-  const dailyForecasts = apiJson.daily.time.map((dateStr, idx) => ({
-    date: dateStr,
-    weatherCode: apiJson.daily.weather_code.at(idx),
-    conditionText: "",
-    maxC: apiJson.daily.temperature_2m_max.at(idx),
-    minC: apiJson.daily.temperature_2m_min.at(idx),
-  }));
-
-  return {
-    current: {
-      city: cityLabel,
-      tempC: apiJson.current.temperature_2m,
-      weatherCode: apiJson.current.weather_code,
-      conditionText: "",
-      humidity: apiJson.current.relative_humidity_2m,
-      windKmh: apiJson.current.wind_speed_10m,
-    },
-    daily: dailyForecasts,
-  };
-}
-
-// Live WeatherAPI Integration (Current + 7-Day Forecast)
-async function fetchFromWeatherApi(query) {
-  const url = `https://weatherapi.com{WEATHER_API_KEY}&q=${encodeURIComponent(query)}&days=7&aqi=no&alerts=no`;
-  const response = await fetch(url);
-  const data = await response.json();
 
   if (!response.ok) {
-    if (data.error && data.error.code === 1006) {
-      return { notFound: true };
-    }
-    throw new Error(data.error ? data.error.message : "WeatherAPI request failed");
+    throw new Error("Could not search for this city. Please try again.");
   }
 
-  const cityLabel = data.location.country
-    ? `${data.location.name}, ${data.location.country}`
-    : data.location.name;
+  const data = await response.json();
+  console.log("Geocoding response:", data);
 
-  // Build 7-day forecast array (pads to 7 days if free plan returns 3 days)
-  const rawDays = data.forecast.forecastday;
-  const dailyForecasts = [];
-  for (let i = 0; i < 7; i++) {
-    const item = rawDays.at(i % rawDays.length);
-    const dateObj = new Date(`${rawDays.at(0).date}T00:00:00`);
-    dateObj.setDate(dateObj.getDate() + i);
-    const isoDate = dateObj.toISOString().split("T").at(0);
-
-    dailyForecasts.push({
-      date: isoDate,
-      weatherCode: item.day.condition.code,
-      conditionText: item.day.condition.text,
-      maxC: item.day.maxtemp_c,
-      minC: item.day.mintemp_c,
-    });
+  if (!data.results || data.results.length === 0) {
+    return null;
   }
 
-  return {
-    notFound: false,
-    weather: {
-      current: {
-        city: cityLabel,
-        tempC: data.current.temp_c,
-        weatherCode: data.current.condition.code,
-        conditionText: data.current.condition.text,
-        humidity: data.current.humidity,
-        windKmh: data.current.wind_kph,
-      },
-      daily: dailyForecasts,
-    },
-  };
+  return data.results[0];
 }
 
-// Render Current Weather Card
-function renderCurrent(current) {
-  const info = getWeatherInfo(current.weatherCode, current.conditionText);
-  document.getElementById("current-city").textContent = current.city;
-  document.getElementById("current-condition").textContent = info.label;
-  document.getElementById("current-icon").textContent = info.emoji;
-  document.getElementById("current-temp").textContent = formatTemp(current.tempC);
-  document.getElementById("current-humidity").textContent = `${current.humidity}%`;
-  document.getElementById("current-wind").textContent = `${Math.round(current.windKmh)} km/h`;
-  applyConditionTheme(info.theme);
+// Second API call: get current weather and the 7-day forecast.
+async function getWeather(latitude, longitude) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min&forecast_days=7&timezone=auto`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error("Weather data could not be loaded. Please try again.");
+  }
+
+  const data = await response.json();
+  console.log("Weather response:", data);
+  return data;
 }
 
-// Render 7-Day Forecast Cards
-function renderForecast(days) {
-  const forecastRow = document.getElementById("forecast-row");
-  forecastRow.innerHTML = days
-    .map((day) => {
-      const weekday = new Date(`${day.date}T00:00:00`).toLocaleDateString("en-IN", { weekday: "short" });
-      const info = getWeatherInfo(day.weatherCode, day.conditionText);
-      const maxDisplay = currentUnit === "C" ? `${Math.round(day.maxC)}°` : `${toFahrenheit(day.maxC)}°`;
-      const minDisplay = currentUnit === "C" ? `${Math.round(day.minC)}°` : `${toFahrenheit(day.minC)}°`;
-
-      return `
-        <article class="forecast-card">
-          <h3 class="forecast-day">${weekday}</h3>
-          <div class="forecast-icon" role="img" aria-label="${info.label}">${info.emoji}</div>
-          <p class="forecast-temps">
-            <span class="max-temp">${maxDisplay}</span> / <span class="min-temp">${minDisplay}</span>
-          </p>
-        </article>
-      `;
-    })
-    .join("");
+function showLoading() {
+  statusMessage.textContent = "Loading weather data...";
+  statusMessage.className = "status-message";
+  searchButton.disabled = true;
+  searchButton.textContent = "Loading...";
 }
 
-function renderDashboard() {
+function hideLoading() {
+  searchButton.disabled = false;
+  searchButton.textContent = "Search";
+}
+
+function showError(message) {
+  statusMessage.textContent = message;
+  statusMessage.className = "status-message error";
+}
+
+function formatCityName(location) {
+  const parts = [location.name];
+
+  if (location.admin1 && location.admin1 !== location.name) {
+    parts.push(location.admin1);
+  }
+
+  if (location.country_code) {
+    parts.push(location.country_code);
+  }
+
+  return parts.join(", ");
+}
+
+function getDayName(dateString, index) {
+  if (index === 0) return "Today";
+
+  // Use midday to avoid date shifting because of timezone differences.
+  const date = new Date(`${dateString}T12:00:00`);
+  return date.toLocaleDateString("en-US", { weekday: "short" });
+}
+
+function renderCurrentWeather(current) {
+  const weatherInfo = getWeatherInfo(current.weather_code);
+  const temperature = convertTemperature(current.temperature_2m);
+
+  currentDescription.textContent = weatherInfo.description;
+  currentIcon.textContent = weatherInfo.emoji;
+  currentTemperature.textContent = `${temperature}°${temperatureUnit}`;
+  feelsLike.textContent = `Updated with live weather data`;
+  humidityElement.textContent = `${current.relative_humidity_2m}%`;
+  windSpeedElement.textContent = `${Math.round(current.wind_speed_10m)} km/h`;
+}
+
+function renderForecast(daily) {
+  forecastList.innerHTML = "";
+
+  for (let i = 0; i < daily.time.length; i++) {
+    const weatherInfo = getWeatherInfo(daily.weather_code[i]);
+    const maximum = convertTemperature(daily.temperature_2m_max[i]);
+    const minimum = convertTemperature(daily.temperature_2m_min[i]);
+
+    const card = document.createElement("article");
+    card.className = "forecast-card";
+
+    card.innerHTML = `
+      <p class="forecast-day">${getDayName(daily.time[i], i)}</p>
+      <span class="forecast-icon" aria-hidden="true">${weatherInfo.emoji}</span>
+      <p class="forecast-condition">${weatherInfo.description}</p>
+      <p class="forecast-temperatures">
+        <strong>${maximum}°</strong> / <span>${minimum}°</span>
+      </p>
+    `;
+
+    forecastList.appendChild(card);
+  }
+}
+
+function renderWeather() {
   if (!weatherData) return;
-  renderCurrent(weatherData.current);
+
+  renderCurrentWeather(weatherData.current);
   renderForecast(weatherData.daily);
 }
 
-// Search Flow: Tries Open-Meteo first, falls back to WeatherAPI seamlessly
-async function loadWeatherForCity(cityName) {
-  setLoadingState(true, `Loading live weather for "${cityName}"...`);
+async function searchCity(city) {
+  const cleanCity = city.trim();
+
+  if (!cleanCity) {
+    showError("Please enter a city name.");
+    return;
+  }
+
+  showLoading();
 
   try {
-    const location = await getCoordinates(cityName);
-    if (location.notFound) {
-      showMessage(`City not found: "${cityName}". Please check the spelling and try again.`, "error");
+    const location = await getCoordinates(cleanCity);
+
+    if (!location) {
+      showError("City not found. Please check the spelling and try again.");
       return;
     }
 
-    const forecastJson = await getWeather(location.latitude, location.longitude);
-    weatherData = mapOpenMeteoToData(location.name, forecastJson);
-    renderDashboard();
-    clearMessage();
-  } catch (openMeteoErr) {
-    console.warn("Open-Meteo unavailable, using WeatherAPI:", openMeteoErr);
-    try {
-      const backup = await fetchFromWeatherApi(cityName);
-      if (backup.notFound) {
-        showMessage(`City not found: "${cityName}". Please check the spelling and try again.`, "error");
-        return;
-      }
-      weatherData = backup.weather;
-      renderDashboard();
-      clearMessage();
-    } catch (apiErr) {
-      console.error(apiErr);
-      showMessage("Network error: Unable to load weather data. Check your internet connection.", "error");
+    const data = await getWeather(location.latitude, location.longitude);
+
+    if (!data.current || !data.daily) {
+      throw new Error("The weather service returned incomplete data. Please try again.");
     }
+
+    weatherData = data;
+    cityNameElement.textContent = formatCityName(location);
+    renderWeather();
+
+    statusMessage.textContent = `Showing live weather for ${location.name}.`;
+    statusMessage.className = "status-message";
+  } catch (error) {
+    console.error("Weather dashboard error:", error);
+    showError(
+      error instanceof TypeError
+        ? "Network error. Check your internet connection and try again."
+        : error.message
+    );
   } finally {
-    setLoadingState(false);
+    hideLoading();
   }
 }
 
-// Stretch Goal: My Location Button (GPS with automatic IP-based WeatherAPI fallback)
-geoBtn.addEventListener("click", () => {
-  setLoadingState(true, "Detecting your current location...");
-
-  const detectByIp = async () => {
-    try {
-      const backup = await fetchFromWeatherApi("auto:ip");
-      if (!backup.notFound) {
-        weatherData = backup.weather;
-        renderDashboard();
-        clearMessage();
-      } else {
-        showMessage("Could not detect location automatically. Please search for a city.", "error");
-      }
-    } catch {
-      showMessage("Location detection failed. Please search for your city manually.", "error");
-    } finally {
-      setLoadingState(false);
-    }
-  };
-  if (!navigator.geolocation) {
-    detectByIp();
-    return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      const { latitude, longitude } = position.coords;
-      try {
-        const forecastJson = await getWeather(latitude, longitude);
-        weatherData = mapOpenMeteoToData(
-          My Location(${ latitude.toFixed(2) }°, ${ longitude.toFixed(2) }°),
-          forecastJson
-        );
-        renderDashboard();
-        clearMessage();
-      } catch {
-        const backup = await fetchFromWeatherApi(${ latitude }, ${ longitude });
-        if (!backup.notFound) {
-          weatherData = backup.weather;
-          renderDashboard();
-          clearMessage();
-        }
-      } finally {
-        setLoadingState(false);
-      }
-    },
-    () => {
-      // Automatically uses WeatherAPI's "auto:ip" lookup when browser GPS permission is blocked
-      detectByIp();
-    },
-    { timeout: 5000 }
-  );
-});
-// Unit Toggle (°C <-> °F)
-unitToggleBtn.addEventListener("click", () => {
-  currentUnit = currentUnit === "C" ? "F" : "C";
-  unitToggleBtn.textContent = currentUnit === "C" ? "Switch to °F" : "Switch to °C";
-  renderDashboard();
-});
-// Search Form Submit
-searchForm.addEventListener("submit", (event) => {
+searchForm.addEventListener("submit", function (event) {
   event.preventDefault();
-  const query = cityInput.value.trim();
-  if (!query) {
-    showMessage("Please enter a city name before searching.", "error");
-    return;
-  }
-  loadWeatherForCity(query);
-  cityInput.value = "";
+  searchCity(cityInput.value);
 });
-// Initial live load for Greater Noida
-loadWeatherForCity("Greater Noida");
+
+celsiusButton.addEventListener("click", function () {
+  temperatureUnit = "C";
+  celsiusButton.classList.add("active");
+  fahrenheitButton.classList.remove("active");
+  celsiusButton.setAttribute("aria-pressed", "true");
+  fahrenheitButton.setAttribute("aria-pressed", "false");
+  renderWeather();
+});
+
+fahrenheitButton.addEventListener("click", function () {
+  temperatureUnit = "F";
+  fahrenheitButton.classList.add("active");
+  celsiusButton.classList.remove("active");
+  fahrenheitButton.setAttribute("aria-pressed", "true");
+  celsiusButton.setAttribute("aria-pressed", "false");
+  renderWeather();
+});
+
+// Load a default city as soon as the page opens.
+searchCity("Greater Noida");

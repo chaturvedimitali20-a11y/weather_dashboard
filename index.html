@@ -1,65 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Weather Dashboard | SkillMe Week 3</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="WeatherNow — live weather and a 7-day forecast for cities around the world.">
+  <title>WeatherNow | City Weather Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="script.js" defer></script>
 </head>
 <body>
-  <main class="dashboard">
-    <header class="dashboard-header">
-      <h1>Weather Dashboard</h1>
-      <div class="header-controls">
-        <form class="search-form" id="search-form" novalidate>
-          <label for="city-input" class="visually-hidden">Search city</label>
-          <input
-            type="text"
-            id="city-input"
-            class="search-input"
-            placeholder="Enter any city (e.g., Pune, London)..."
-            aria-label="Search city"
-          />
-          <button type="submit" id="search-btn" class="search-btn">Search</button>
-        </form>
-        <button type="button" id="geo-btn" class="geo-btn" aria-label="Use my current location">
-          📍 My Location
-        </button>
-        <button type="button" id="unit-toggle" class="unit-btn" aria-label="Toggle temperature unit">
-          Switch to °F
-        </button>
+  <main class="container">
+    <header class="top-bar">
+      <div>
+        <p class="eyebrow">YOUR WEATHER, AT A GLANCE</p>
+        <h1>Weather Dashboard</h1>
       </div>
+
+      <form id="search-form" class="search-form">
+        <label class="sr-only" for="city-input">Search for a city</label>
+        <input
+          type="text"
+          id="city-input"
+          placeholder="Enter city name (e.g., Greater Noida)..."
+          autocomplete="off"
+          required
+        >
+        <button type="submit" id="search-button">Search</button>
+      </form>
     </header>
 
-    <!-- Status / Loading / Error Feedback Banner -->
-    <p id="search-message" class="search-message" role="alert" aria-live="polite"></p>
+    <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
 
-    <!-- Current Weather Card -->
-    <section class="current-weather" aria-label="Current weather">
-      <div class="current-main">
+    <section class="current-card" aria-label="Current weather">
+      <div class="current-heading">
         <div>
-          <h2 class="current-city" id="current-city">Loading...</h2>
-          <p class="current-condition" id="current-condition">--</p>
+          <h2 id="city-name">Greater Noida, IN</h2>
+          <p id="current-description" class="description">Getting current weather...</p>
         </div>
-        <div class="current-icon" id="current-icon" role="img" aria-label="Weather icon">☀️</div>
+        <div id="current-icon" class="current-icon" aria-hidden="true">⛅</div>
       </div>
 
-      <div class="current-stats">
-        <p class="current-temp" id="current-temp">--°C</p>
-        <div class="current-details">
-          <span>💧 Humidity: <strong id="current-humidity">--%</strong></span>
-          <span>💨 Wind: <strong id="current-wind">-- km/h</strong></span>
+      <div class="current-details">
+        <div class="temperature-area">
+          <p id="current-temperature" class="current-temperature">--°C</p>
+          <p id="feels-like" class="feels-like">Live weather from Open-Meteo</p>
+        </div>
+
+        <div class="weather-stats">
+          <p><span aria-hidden="true">💧</span> Humidity: <strong id="humidity">--%</strong></p>
+          <p><span aria-hidden="true">💨</span> Wind: <strong id="wind-speed">-- km/h</strong></p>
         </div>
       </div>
     </section>
 
-    <!-- 7-Day Forecast Row -->
-    <section class="forecast-section" aria-label="7-day forecast">
-      <h2 class="section-title">7-Day Forecast</h2>
-      <div class="forecast-row" id="forecast-row"></div>
+    <section class="forecast-section" aria-label="Seven day forecast">
+      <div class="forecast-heading">
+        <h2>7-Day Forecast</h2>
+        <div class="unit-toggle" aria-label="Temperature unit">
+          <button type="button" id="celsius-button" class="unit-button active" aria-pressed="true">°C</button>
+          <button type="button" id="fahrenheit-button" class="unit-button" aria-pressed="false">°F</button>
+        </div>
+      </div>
+
+      <div id="forecast-list" class="forecast-grid">
+        <p class="forecast-placeholder">Your 7-day forecast will appear here.</p>
+      </div>
     </section>
+
+    <footer>
+      <p>Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p>
+    </footer>
   </main>
-
-  <script src="script.js"></script>
 </body>
 </html>

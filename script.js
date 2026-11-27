@@ -1,4 +1,3 @@
-// Week 3: Live Weather from Open-Meteo API (Geocoding + Forecast)
 let weatherData = null;
 let currentUnit = "C";
 
@@ -12,88 +11,111 @@ const searchMessage = document.getElementById("search-message");
 
 // Helper: Convert Celsius to rounded Fahrenheit
 function toFahrenheit(celsius) {
-  return Math.round((celsius * 9) / 5 + 32);
+  return Math.round((Number(celsius) * 9) / 5 + 32);
 }
 
 // Helper: Format temperature according to active unit
 function formatTemp(tempC) {
-  return currentUnit === "C" ? `${Math.round(tempC)}°C` : `${toFahrenheit(tempC)}°F`;
+  return currentUnit === "C" ? `${Math.round(Number(tempC))}°C` : `${toFahrenheit(tempC)}°F`;
 }
 
-// Helper: Map Open-Meteo WMO weather_code to emoji, description, and theme
-function getWeatherInfo(code) {
-  if (code === 0) return { emoji: "☀️", label: "Clear Sky", theme: "sunny" };
-  if (code === 1 || code === 2) return { emoji: "⛅", label: "Partly Cloudy", theme: "sunny" };
-  if (code === 3) return { emoji: "☁️", label: "Overcast", theme: "cloudy" };
-  if (code === 45 || code === 48) return { emoji: "🌫️", label: "Foggy", theme: "cloudy" };
-  if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) {
-    return { emoji: "🌧️", label: "Rain / Showers", theme: "rain" };
+// Helper: Map weather description text to emoji and theme
+function getWeatherInfo(desc) {
+  const text = desc.toLowerCase();
+  if (text.includes("thunder") || text.includes("storm")) {
+    return { emoji: "⛈️", theme: "rain" };
   }
-  if ((code >= 71 && code <= 77) || (code === 85 || code === 86)) {
-    return { emoji: "❄️", label: "Snow", theme: "cloudy" };
+  if (text.includes("rain") || text.includes("drizzle") || text.includes("shower")) {
+    return { emoji: "🌧️", theme: "rain" };
   }
-  if (code >= 95 && code <= 99) {
-    return { emoji: "⛈️", label: "Thunderstorm", theme: "rain" };
+  if (text.includes("snow") || text.includes("sleet") || text.includes("blizzard")) {
+    return { emoji: "❄️", theme: "cloudy" };
   }
-  return { emoji: "🌤️", label: "Mild Weather", theme: "sunny" };
+  if (text.includes("fog") || text.includes("mist") || text.includes("haze")) {
+    return { emoji: "🌫️", theme: "cloudy" };
+  }
+  if (text.includes("overcast") || text.includes("cloud")) {
+    return { emoji: "☁️", theme: "cloudy" };
+  }
+  if (text.includes("partly")) {
+    return { emoji: "⛅", theme: "sunny" };
+  }
+  return { emoji: "☀️", theme: "sunny" };
 }
 
-// 1. Get Coordinates from City Name
-async function getCoordinates(city) {
-  const url = `https://open-meteo.com{encodeURIComponent(city)}&count=1`;
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error(`Geocoding error: ${response.status}`);
-  }
-
-  return await response.json();
+// Helper to show/hide feedback banner
+function setBanner(text, type = "") {
+  searchMessage.textContent = text;
+  searchMessage.className = type ? `search-message ${type}` : "search-message";
 }
 
-// 2. Get Current & 7-Day Forecast Data
-async function getWeather(lat, lon) {
-  const url = `https://open-meteo.com{lat}&longitude=${lon}&current=temperature_2m,weather_code,wind_speed_10m,relative_humidity_2m&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`;
-  const response = await fetch(url);
+// 1. Fetch Weather Directly by City Name or "lat,lon"
+async function fetchWeatherByQuery(query, customLabel = null) {
+  setBanner("Loading weather...", "loading");
+  searchBtn.disabled = true;
+  geoBtn.disabled = true;
 
-  if (!response.ok) {
-    throw new Error(`Forecast error: ${response.status}`);
-  }
+  try {
+    const url = `https://wttr.in{encodeURIComponent(query)}?format=j1`;
+    const response = await fetch(url);
 
-  return await response.json();
-}
+    if (!response.ok) {
+      throw new Error(`HTTP error: ${response.status}`);
+    }
 
-// 3. Transform Open-Meteo JSON into Dashboard Data Shape
-function formatWeatherData(cityLabel, apiData) {
-  const currentInfo = getWeatherInfo(apiData.current.weather_code);
+    const data = await response.json();
 
-  const forecast = apiData.daily.time.map((dateStr, index) => {
-    const dateObj = new Date(dateStr + "T00:00:00");
-    const dayName = dateObj.toLocaleDateString("en-US", { weekday: "short" });
-    const dayInfo = getWeatherInfo(apiData.daily.weather_code[index]);
+    if (!data.current_condition || !data.current_condition[0]) {
+      throw new Error("Location not found");
+    }
 
-    return {
-      day: dayName,
-      code: apiData.daily.weather_code[index],
-      emoji: dayInfo.emoji,
-      highC: apiData.daily.temperature_2m_max[index],
-      lowC: apiData.daily.temperature_2m_min[index],
+    const current = data.current_condition[0];
+    const area = data.nearest_area?.[0];
+    const cityName = area?.areaName?.[0]?.value || query;
+    const countryName = area?.country?.[0]?.value || "";
+    const label = customLabel || (countryName ? `${cityName}, ${countryName}` : cityName);
+
+    const conditionText = current.weatherDesc?.[0]?.value || "Clear";
+    const currentInfo = getWeatherInfo(conditionText);
+
+    // wttr.in returns 3 days in free JSON; map available days cleanly
+    const forecast = (data.weather || []).map((dayItem) => {
+      const dateObj = new Date(dayItem.date + "T00:00:00");
+      const dayName = dateObj.toLocaleDateString("en-US", { weekday: "short" });
+      const midDesc = dayItem.hourly?.[4]?.weatherDesc?.[0]?.value || conditionText;
+      const dayInfo = getWeatherInfo(midDesc);
+
+      return {
+        day: dayName,
+        emoji: dayInfo.emoji,
+        highC: dayItem.maxtempC,
+        lowC: dayItem.mintempC,
+      };
+    });
+
+    weatherData = {
+      city: label,
+      tempC: current.temp_C,
+      humidity: current.humidity,
+      windKmh: current.windspeedKmph,
+      condition: conditionText,
+      emoji: currentInfo.emoji,
+      theme: currentInfo.theme,
+      forecast: forecast,
     };
-  });
 
-  return {
-    city: cityLabel,
-    tempC: apiData.current.temperature_2m,
-    humidity: apiData.current.relative_humidity_2m,
-    windKmh: apiData.current.wind_speed_10m,
-    weatherCode: apiData.current.weather_code,
-    condition: currentInfo.label,
-    emoji: currentInfo.emoji,
-    theme: currentInfo.theme,
-    forecast: forecast,
-  };
+    setBanner("");
+    renderWeather(weatherData);
+  } catch (error) {
+    console.error("Weather fetch error:", error);
+    setBanner("Could not find that city or connect to the weather service.", "error");
+  } finally {
+    searchBtn.disabled = false;
+    geoBtn.disabled = false;
+  }
 }
 
-// 4. Render Current Weather, 7-Day Forecast & Page Theme
+// 2. Render Weather to DOM
 function renderWeather(data) {
   document.body.className = `theme-${data.theme}`;
 
@@ -121,84 +143,59 @@ function renderWeather(data) {
     .join("");
 }
 
-// Helper to show/hide feedback banner
-function setBanner(text, type = "") {
-  searchMessage.textContent = text;
-  searchMessage.className = type ? `search-message ${type}` : "search-message";
-}
-
-// 5. Main Search Handler
-async function handleCitySearch(city) {
-  setBanner("Loading...", "loading");
-  searchBtn.disabled = true;
-  geoBtn.disabled = true;
-
+// 3. IP-Based Fallback Location Detection (Works even when GPS is blocked)
+async function detectLocationByIP() {
   try {
-    const geoData = await getCoordinates(city);
+    setBanner("Detecting location via network...", "loading");
+    const res = await fetch("https://ipapi.co");
+    if (!res.ok) throw new Error("IP lookup failed");
+    const ipData = await res.json();
 
-    if (!geoData.results || geoData.results.length === 0) {
-      setBanner("City not found. Please check the spelling and try again.", "error");
-      return;
+    if (ipData.city) {
+      const label = ipData.country_name ? `${ipData.city}, ${ipData.country_name}` : ipData.city;
+      await fetchWeatherByQuery(ipData.city, label);
+    } else {
+      throw new Error("City not detected");
     }
-
-    const location = geoData.results[0];
-    const rawWeather = await getWeather(location.latitude, location.longitude);
-
-    const cityLabel = `${location.name}, ${location.country}`;
-    weatherData = formatWeatherData(cityLabel, rawWeather);
-
-    setBanner("");
-    renderWeather(weatherData);
-  } catch (error) {
-    console.error("Fetch failed:", error);
-    setBanner("Unable to connect. Please check your internet connection and try again.", "error");
-  } finally {
+  } catch (err) {
+    console.error("IP location error:", err);
+    setBanner("Unable to detect location automatically. Please type your city above.", "error");
     searchBtn.disabled = false;
     geoBtn.disabled = false;
   }
 }
 
-// 6. Geolocation ("📍 My Location" button)
+// 4. Device Location Handler (Tries GPS first, falls back to IP location)
 function handleGeolocation() {
+  searchBtn.disabled = true;
+  geoBtn.disabled = true;
+
   if (!navigator.geolocation) {
-    setBanner("Geolocation is not supported by your browser.", "error");
+    detectLocationByIP();
     return;
   }
 
   setBanner("Detecting your location...", "loading");
-  searchBtn.disabled = true;
-  geoBtn.disabled = true;
 
   navigator.geolocation.getCurrentPosition(
-    async (position) => {
-      try {
-        const { latitude, longitude } = position.coords;
-        const rawWeather = await getWeather(latitude, longitude);
-        weatherData = formatWeatherData("My Current Location", rawWeather);
-        setBanner("");
-        renderWeather(weatherData);
-      } catch (error) {
-        console.error("Location weather failed:", error);
-        setBanner("Unable to fetch weather for your location.", "error");
-      } finally {
-        searchBtn.disabled = false;
-        geoBtn.disabled = false;
-      }
+    (position) => {
+      const { latitude, longitude } = position.coords;
+      fetchWeatherByQuery(`${latitude},${longitude}`);
     },
     () => {
-      setBanner("Location access denied. Please search for a city manually.", "error");
-      searchBtn.disabled = false;
-      geoBtn.disabled = false;
-    }
+      // If browser/OS blocks GPS permission, automatically use IP-based location
+      detectLocationByIP();
+    },
+    { timeout: 6000 }
   );
 }
 
-// 7. Event Listeners
+// 5. Event Listeners
 searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
   const city = cityInput.value.trim();
   if (city) {
-    handleCitySearch(city);
+    fetchWeatherByQuery(city);
   } else {
     setBanner("Please enter a city name.", "error");
   }
@@ -215,5 +212,5 @@ unitToggleBtn.addEventListener("click", () => {
   }
 });
 
-// Load Pune by default when page opens
-handleCitySearch("Pune");
+// Load Pune by default on startup
+fetchWeatherByQuery("Pune");

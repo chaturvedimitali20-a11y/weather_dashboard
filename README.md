@@ -1,24 +1,40 @@
-# Weather Dashboard (Week 1 & Week 2)
+# WeatherNow – City Weather Dashboard
 
-A responsive weather dashboard UI built with semantic HTML5, modern CSS3 (Flexbox & CSS Custom Properties), and vanilla JavaScript as part of the SkillMe Full Stack Engineer Internship.
+A responsive, interactive weather dashboard built using HTML5, CSS3, and vanilla JavaScript as part of the SkillMe Full Stack Engineer Virtual Internship.
 
 🌐 **Live Demo:** [https://chaturvedimitali20-a11y.github.io/weather_dashboard/](https://chaturvedimitali20-a11y.github.io/weather_dashboard/)
 
-
 ## Features
 
-### Week 1 (Static UI & Responsive Layout)
-- Accessible city search bar
-- Current weather card displaying city, condition, temperature, humidity, and wind speed
-- 7-day forecast row with horizontal scrolling on smaller screens
+### Week 1 – Static UI & Responsive Layout
+- Clean and responsive weather dashboard interface.
+- City search bar and current weather card.
+- 7-day forecast layout.
 
-### Week 2 (Dynamic JavaScript Rendering & Interactivity)
-- Dynamic DOM rendering of current weather and 7-day forecast cards from JavaScript data objects using template literals
-- Live **°C / °F** temperature unit toggle with pure helper functions
-- Client-side search form validation with instant feedback messages and dynamic city updates
-- Condition-based background color themes (`sunny`, `cloudy`, `rain`)
+### Week 2 – Dynamic JavaScript & Interactivity
+- Live weather data using Open-Meteo APIs.
+- Dynamic current weather and 7-day forecast rendering.
+- Celsius (°C) / Fahrenheit (°F) temperature toggle.
+- City search validation and weather-condition icons.
+
+### Week 3 – Live Weather API Integration
+- City geocoding and real-time weather information.
+- Current temperature, feels-like temperature, humidity, and wind speed.
+- Weather descriptions and icons based on weather codes.
+- Loading and error messages.
+
+### Week 4 – Saved Cities & Responsive Polish
+- Save favourite cities for quick access.
+- Persistent saved cities using browser localStorage.
+- Clickable city chips to load weather directly.
+- Remove saved cities and prevent duplicate entries.
+- Remember the last searched city and selected temperature unit.
+- Improved mobile responsiveness and keyboard accessibility.
 
 ## Tech Stack
 - HTML5
-- CSS3 (Flexbox, CSS Variables)
-- JavaScript (ES6+ DOM Manipulation & Events)
+- CSS3 (Flexbox, CSS Variables, Responsive Design)
+- JavaScript (ES6+, DOM Manipulation, Fetch API)
+- Open-Meteo Geocoding & Weather APIs
+- Browser localStorage
+- Git & GitHub Pages

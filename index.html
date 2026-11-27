@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="WeatherNow — live weather and a 7-day forecast for cities around the world.">
+  <meta name="description" content="WeatherNow — live weather, saved favourite cities and a 7-day forecast.">
   <title>WeatherNow | City Weather Dashboard</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
+
 <body>
   <main class="container">
+
     <header class="top-bar">
       <div>
         <p class="eyebrow">YOUR WEATHER, AT A GLANCE</p>
@@ -18,26 +21,46 @@
 
       <form id="search-form" class="search-form">
         <label class="sr-only" for="city-input">Search for a city</label>
-        <input
-          type="text"
-          id="city-input"
-          placeholder="Enter city name (e.g., Greater Noida)..."
-          autocomplete="off"
-          required
-        >
+        <input type="text" id="city-input" placeholder="Enter city name (e.g., Greater Noida)..." autocomplete="off"
+          required>
         <button type="submit" id="search-button">Search</button>
       </form>
     </header>
 
     <p id="status-message" class="status-message" role="status" aria-live="polite"></p>
 
+    <!-- Saved Favourite Cities -->
+    <section class="favourites-section" aria-labelledby="favourites-heading">
+      <div class="favourites-heading">
+        <h2 id="favourites-heading">⭐ Favourite Cities</h2>
+      </div>
+
+      <div id="saved-cities-list" class="saved-cities-list">
+        <p id="empty-favourites" class="empty-favourites">
+          No favourite cities saved yet.
+        </p>
+      </div>
+    </section>
+
+    <!-- Current Weather -->
     <section class="current-card" aria-label="Current weather">
+
       <div class="current-heading">
         <div>
           <h2 id="city-name">Greater Noida, IN</h2>
-          <p id="current-description" class="description">Getting current weather...</p>
+          <p id="current-description" class="description">
+            Getting current weather...
+          </p>
         </div>
-        <div id="current-icon" class="current-icon" aria-hidden="true">⛅</div>
+
+        <div class="current-heading-actions">
+          <button type="button" id="save-city-button" class="save-city-button" disabled
+            aria-label="Save current city to favourites">
+            + Save City
+          </button>
+
+          <div id="current-icon" class="current-icon" aria-hidden="true">⛅</div>
+        </div>
       </div>
 
       <div class="current-details">
@@ -53,23 +76,37 @@
       </div>
     </section>
 
+    <!-- Seven Day Forecast -->
     <section class="forecast-section" aria-label="Seven day forecast">
+
       <div class="forecast-heading">
         <h2>7-Day Forecast</h2>
+
         <div class="unit-toggle" aria-label="Temperature unit">
           <button type="button" id="celsius-button" class="unit-button active" aria-pressed="true">°C</button>
+
           <button type="button" id="fahrenheit-button" class="unit-button" aria-pressed="false">°F</button>
         </div>
       </div>
 
       <div id="forecast-list" class="forecast-grid">
-        <p class="forecast-placeholder">Your 7-day forecast will appear here.</p>
+        <p class="forecast-placeholder">
+          Your 7-day forecast will appear here.
+        </p>
       </div>
+
     </section>
 
     <footer>
-      <p>Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">Open-Meteo</a>.</p>
+      <p>
+        Weather data provided by
+        <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
+          Open-Meteo
+        </a>.
+      </p>
     </footer>
+
   </main>
 </body>
+
 </html>
